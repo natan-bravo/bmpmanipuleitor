@@ -6,7 +6,6 @@ void achicar(tDatosBMP* Imagen, tArgumento* argumento)
     int nuevoAlto = Imagen->header.alto * (argumento->porcentaje/100.0);
     float factor = 100.0/(float)argumento->porcentaje;
     int i, j, x, y;
-    tPixel aux;
 
     for(i = 0; i < nuevoAlto; i++)
         for(j = 0; j < nuevoAncho; j++)
