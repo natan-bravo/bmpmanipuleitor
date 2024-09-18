@@ -19,6 +19,7 @@
     -----------------
 */
 #include "funciones_bravo.h"
+#include "funciones_medina.h"
 
 int solucion(int argc, char* argv[])
 {
@@ -32,12 +33,10 @@ int solucion(int argc, char* argv[])
 
     else
     {
-        puts ("no hay imagen");
+        puts ("No hay imagen.");
         return 0;
     }
     tDatosBMP datImg = datoImagen (img);  //copia los datos de la imagen en un struct
-
-    copiarImagen (datImg);  //prueba para ver si los datos de la imagen se copiaron correctamente
 
 
     if (datImg.flag)
@@ -49,88 +48,105 @@ int solucion(int argc, char* argv[])
             {
                 case 1:
                     {
-                        puts ("escala de grises\n");
+                        escalaGrises(&datImg);
+                        puts ("Escala de Grises\n");
                     }
                     break;
                 case 2:
                     {
-                        puts ("espejar horizontal\n");
+                        invertirHorizontal(&datImg);
+                        puts ("Espejar Horizontal\n");
                     }
                     break;
                 case 3:
                     {
-                        puts ("espejar vertical\n");
+                        invertirVertical(&datImg);
+                        puts ("Espejar Vertical\n");
                     }
                     break;
                 case 4:
                     {
-                        puts ("rotar derecha\n");
+                        puts ("Rotar Derecha\n");
                     }
                     break;
                 case 5:
                     {
-                        puts ("rotar izquierda\n");
+                        puts ("Rotar Izquierda\n");
                     }
                     break;
                 case 6:
                     {
-                        puts ("concatenar horizontal\n");
+                        puts ("Concatenar Horizontal\n");
                     }
                     break;
                 case 7:
                     {
-                        puts ("concatenar vertical\n");
+                        puts ("Concatenar Vertical\n");
                     }
                     break;
                 case 8:
                     {
-                        puts ("comodin\n");
+                        negativo(&datImg);
+                        puts ("Comodin(Negativo)\n");
                     }
                     break;
                 case 9:
                     {
-                        puts ("aumentar contraste\n");
+                        puts ("Aumentar Contraste\n");
                     }
                     break;
                 case 10:
                     {
-                        puts ("reducir contraste\n");
+                        puts ("Reducir Contraste\n");
                     }
                     break;
                 case 11:
                     {
-                        puts ("tonalidad azul\n");
+                        puts ("Tonalidad Azul\n");
                     }
                     break;
                 case 12:
                     {
-                        puts ("tonalidad verde\n");
+                        puts ("Tonalidad Verde\n");
                     }
                     break;
                 case 13:
                     {
-                        puts ("tonalidad roja\n");
+                        puts ("Tonalidad Roja\n");
                     }
                     break;
                 case 14:
                     {
-                        puts ("recortar\n");
+                        if(argumento.porcentaje> 0 && argumento.porcentaje< 100)
+                        {
+                            recortar(&datImg, &argumento);
+                            puts ("Recortar\n");
+                        }
+                        else
+                            printf("Argumento Invalido\n");
                     }
                     break;
                 case 15:
                     {
-                        puts ("achicar\n");
+                        if(argumento.porcentaje> 0 && argumento.porcentaje< 100)
+                        {
+                            achicar(&datImg, &argumento);
+                            puts ("Achicar\n");
+                        }
+                        else
+                            printf("Argumento Invalido\n");
                     }
                     break;
                 default:
                     {
                         if (i != pos)
-                            puts ("argumento invalido\n");
+                            puts ("Argumento Anvalido\n");
                     }
                     break;
             }
         }
 
+        copiarImagen (datImg);
     }
 
     for (int j = 0; j < datImg.header.alto; j++)
