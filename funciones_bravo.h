@@ -8,15 +8,14 @@
 #pragma pack(push,1)
 
 
-
-
 typedef struct
 {
     int pos;
     int porcentaje;
 } tArgumento;
 
-typedef struct{
+typedef struct
+{
     unsigned short tipoFichero;
     unsigned int tamFichero;
     unsigned short reservado1;
@@ -35,29 +34,36 @@ typedef struct{
     unsigned int contadorColores;
 } tHeader;
 
-typedef struct{
+typedef struct
+{
     bool existe;
     unsigned char headerExt [84];
 } tHeaderExt;
 
-typedef struct{
+typedef struct
+{
     unsigned char azul;
     unsigned char verde;
     unsigned char rojo;
 } tPixel;
 
-typedef struct
-{
-    bool flag;
-    tHeader header;
-    tHeaderExt headerExt;
-    tPixel** matriz;
-}tDatosBMP;
-
 int posImagen (int, char* []);
 tArgumento argumentoValido (char []);
+void copiarImagen (tPixel**, tHeader, tHeaderExt, char []);
 
-tDatosBMP datoImagen (const char []);
-void copiarImagen (tDatosBMP);
+void tonalidadAzul (tDatosBMP,char [],int);
+void tonalidadVerde (tDatosBMP,char [],int);
+void tonalidadRoja (tDatosBMP,char [],int);
+void reducirContraste (tDatosBMP,char [],int);
+void aumentarContraste (tDatosBMP,char [],int);
+void rotarDerecha (tDatosBMP,char []);
+void rotarIzquierda (tDatosBMP,char []);
+int posImagenConcatenar (int, char*[], int);
+void concatenarHorizontal (tDatosBMP,char [],tDatosBMP);
+void concatenarVertical (tDatosBMP,char [],tDatosBMP);
+
+
+
+
 
 #endif // FUNCIONES_BRAVO_H_INCLUDED
