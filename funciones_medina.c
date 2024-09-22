@@ -1,106 +1,359 @@
+#include "funciones_bravo.h"
 #include "funciones_medina.h"
 
-void achicar(tDatosBMP* Imagen, tArgumento* argumento)
+tDatosBMP datoImagen (const char nombre [])
 {
-    int nuevoAncho = Imagen->header.ancho * (argumento->porcentaje/100.0);
-    int nuevoAlto = Imagen->header.alto * (argumento->porcentaje/100.0);
-    float factor = 100.0/(float)argumento->porcentaje;
-    int i, j, x, y;
+    tDatosBMP datosBMP = {0};
 
-    for(i = 0; i < nuevoAlto; i++)
-        for(j = 0; j < nuevoAncho; j++)
-        {
-            y = (int)(i * factor);
-            x = (int)(j * factor);
-
-            if(y >= nuevoAlto)
-                y--;
-            if(x >= nuevoAncho)
-                x--;
-
-            Imagen->matriz[i][j] = Imagen->matriz[y][x];
-        }
-
-    Imagen->header.ancho = nuevoAncho;
-    Imagen->header.alto = nuevoAlto;
-    Imagen->header.tamImagen = Imagen->header.ancho * Imagen->header.alto * Imagen->header.tamPixel;
-}
-
-void recortar(tDatosBMP* Imagen, tArgumento* argumento)
-{
-    Imagen->header.ancho *= argumento->porcentaje/100.0;
-    Imagen->header.alto *= argumento->porcentaje/100.0;
-    Imagen->header.tamImagen = Imagen->header.ancho * Imagen->header.alto * Imagen->header.tamPixel;
-}
-
-void negativo(tDatosBMP* Imagen)
-{
-    int i, j;
-
-    for(i = 0; i < Imagen->header.alto; i++)
+    FILE *pf = fopen(nombre, "rb");
+    if(!pf)
     {
-        for(j = 0; j < Imagen->header.ancho; j++)
+        puts("Error al abrir imagen");
+        datosBMP.flag = false;
+        return datosBMP;
+    }
+    fread(&datosBMP.header, sizeof(tHeader), 1, pf);
+
+    int offsetArchivo = datosBMP.header.offset - sizeof (tHeader);
+
+    if(offsetArchivo)
+    {
+        fread(&datosBMP.headerExt.headerExt, sizeof(datosBMP.headerExt.headerExt), 1, pf);
+        datosBMP.headerExt.existe = true;
+    }
+
+    else
+        datosBMP.headerExt.existe = false;
+
+    int padding = (4 - (datosBMP.header.ancho * 3) % 4) % 4;
+
+    datosBMP.matriz = (tPixel**) malloc (datosBMP.header.alto * sizeof (tPixel*));
+    if (datosBMP.matriz == NULL)
+    {
+        puts ("Error al asignar memoria");
+        datosBMP.flag = false;
+        fclose (pf);
+        return datosBMP;
+    }
+
+    for (int a = 0; a < datosBMP.header.alto; a++)
+    {
+        datosBMP.matriz [a] = (tPixel*) malloc (datosBMP.header.ancho * sizeof (tPixel));
+        if (datosBMP.matriz [a] == NULL)
         {
-            Imagen->matriz[i][j].rojo = 255 - Imagen->matriz[i][j].rojo;
-            Imagen->matriz[i][j].verde = 255 - Imagen->matriz[i][j].verde;
-            Imagen->matriz[i][j].azul = 255 - Imagen->matriz[i][j].azul;
+            puts ("Error al asignar memoria");
+            datosBMP.flag = false;
+            for (int b = 0; b < a; b++)
+                free (datosBMP.matriz [b]);
+            free (datosBMP.matriz);
+            fclose (pf);
+            return datosBMP;
         }
     }
+
+
+    for (int i=0; i < datosBMP.header.alto; i++)
+    {
+        for (int j = 0; j < datosBMP.header.ancho; j++)
+            fread (&datosBMP.matriz [i][j],sizeof (tPixel), 1, pf);
+        fseek (pf, padding, SEEK_CUR);
+    }
+    datosBMP.flag = true;
+    fclose (pf);
+
+    return datosBMP;
 }
 
 
-void invertirVertical(tDatosBMP* Imagen)
+void achicar (tDatosBMP datoBMP,char nombre[],int porcentaje)
 {
-    int i, j, fin;
-    tPixel aux;
+    char nuevonombre [118]= "VARIABLE_achicar_";
+    strcat(nuevonombre,nombre);
+    int i, j, a, x, y;
 
-    fin = Imagen->header.alto - 1;
+    float porAchicar = (float)porcentaje / 100;
+    int nuevoAlto = (int) (datoBMP.header.alto * porAchicar);
+    int nuevoAncho = (int) (datoBMP.header.ancho * porAchicar);
 
-    for(i = 0; i < Imagen->header.alto/2; i++)
+    tPixel** copia = malloc(nuevoAlto * sizeof(tPixel*));
+    if (copia == NULL)
     {
-        fin--;
-        for(j = 0; j < Imagen->header.ancho; j++)
+        puts("Error al asignar memoria");
+        return;
+    }
+
+    for (i = 0; i < nuevoAlto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(nuevoAncho * sizeof(tPixel));
+        if (copia[i] == NULL)
         {
-            aux = Imagen->matriz[i][j];
-            Imagen->matriz[i][j] = Imagen->matriz[fin][j];
-            Imagen->matriz[fin][j] = aux;
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
+
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < nuevoAncho; a++)
+        {
+            x = (int)(i * ((float)datoBMP.header.alto / nuevoAlto));
+            y = (int)(a * ((float)datoBMP.header.ancho / nuevoAncho));
+            copia[i][a] = datoBMP.matriz[x][y];
         }
     }
+
+    datoBMP.header.alto = nuevoAlto;
+    datoBMP.header.ancho = nuevoAncho;
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
 }
 
-void invertirHorizontal(tDatosBMP* Imagen)
+void recortar (tDatosBMP datoBMP,char nombre[],int porcentaje)
 {
-    int i, j, fin;
-    tPixel aux;
+    char nuevonombre [119]= "VARIABLE_recortar_";
+    strcat(nuevonombre,nombre);
+    int i, j, a;
 
-    for(i = 0; i < Imagen->header.alto; i++)
+    float porAchicar = (float) porcentaje / 100;
+    int nuevoAlto = (int) (datoBMP.header.alto * porAchicar);
+    int nuevoAncho = (int) (datoBMP.header.ancho * porAchicar);
+
+    tPixel** copia = malloc(nuevoAlto * sizeof(tPixel*));
+    if (copia == NULL)
     {
-        fin = Imagen->header.ancho - 1;
-
-        for(j = 0; j < Imagen->header.ancho/2; j++)
+        puts("Error al asignar memoria");
+        return;
+    }
+    for (i = 0; i < nuevoAlto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(nuevoAncho * sizeof(tPixel));
+        if (copia[i] == NULL)
         {
-            aux = Imagen->matriz[i][j];
-            Imagen->matriz[i][j] = Imagen->matriz[i][fin];
-            Imagen->matriz[i][fin] = aux;
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
 
-            fin--;
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < nuevoAncho; a++)
+        {
+            copia[i][a] = datoBMP.matriz[i][a];
         }
     }
+
+    datoBMP.header.alto = nuevoAlto;
+    datoBMP.header.ancho = nuevoAncho;
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
 }
 
-void escalaGrises(tDatosBMP* Imagen)
+
+void espejarHorizontal (tDatosBMP datoBMP,char nombre[])
 {
-    int prom, i, j;
+    char nuevonombre [129]= "VARIABLE_espejar-horizontal_";
+    strcat(nuevonombre,nombre);
+    int i, j, a;
 
-    for(i = 0; i < Imagen->header.alto; i++)
+    tPixel** copia = malloc(datoBMP.header.alto * sizeof(tPixel*));
+    if (copia == NULL)
     {
-        for(j = 0; j < Imagen->header.ancho; j++)
+        puts("Error al asignar memoria");
+        return;
+    }
+    for (i = 0; i < datoBMP.header.alto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(datoBMP.header.ancho * sizeof(tPixel));
+        if (copia[i] == NULL)
         {
-            prom = (Imagen->matriz[i][j].rojo + Imagen->matriz[i][j].azul + Imagen->matriz[i][j].verde)/3;
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
 
-            Imagen->matriz[i][j].rojo = prom;
-            Imagen->matriz[i][j].azul = prom;
-            Imagen->matriz[i][j].verde = prom;
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < datoBMP.header.ancho; a++)
+        {
+            copia[i][a] = datoBMP.matriz[i][datoBMP.header.ancho - a - 1];
         }
     }
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
+}
+
+
+void espejarVertical (tDatosBMP datoBMP,char nombre[])
+{
+    char nuevonombre [127]= "VARIABLE_espejar-vertical_";
+    strcat(nuevonombre,nombre);
+    int i, j, a;
+
+    tPixel** copia = malloc(datoBMP.header.alto * sizeof(tPixel*));
+    if (copia == NULL)
+    {
+        puts("Error al asignar memoria");
+        return;
+    }
+
+    for (i = 0; i < datoBMP.header.alto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(datoBMP.header.ancho * sizeof(tPixel));
+        if (copia[i] == NULL)
+        {
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
+
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < datoBMP.header.ancho; a++)
+        {
+            copia[i][a] = datoBMP.matriz[datoBMP.header.alto - i - 1][a];
+        }
+    }
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
+}
+
+
+void escalaDeGrises (tDatosBMP datoBMP,char nombre[])
+{
+    char nuevonombre [127]= "VARIABLE_escala-de-grises_";
+    strcat(nuevonombre,nombre);
+    int i, j, a, promGris;
+
+    tPixel** copia = malloc(datoBMP.header.alto * sizeof(tPixel*));
+    if (copia == NULL)
+    {
+        puts("Error al asignar memoria");
+        return;
+    }
+    for (i = 0; i < datoBMP.header.alto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(datoBMP.header.ancho * sizeof(tPixel));
+        if (copia[i] == NULL)
+        {
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
+
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < datoBMP.header.ancho; a++)
+        {
+            copia[i][a] = datoBMP.matriz[i][a];
+            promGris = (int) ((copia[i][a].azul + copia[i][a].rojo + copia[i][a].verde) / 3);
+            copia[i][a].azul = (unsigned char) promGris;
+            copia[i][a].rojo = (unsigned char) promGris;
+            copia[i][a].verde = (unsigned char) promGris;
+        }
+    }
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
+}
+
+
+void comodin (tDatosBMP datoBMP,char nombre[])
+{
+    char nuevonombre [118]= "VARIABLE_comodin_";
+    strcat(nuevonombre,nombre);
+    int i, j, a;
+
+    tPixel** copia = malloc(datoBMP.header.alto * sizeof(tPixel*));
+    if (copia == NULL)
+    {
+        puts("Error al asignar memoria");
+        return;
+    }
+    for (i = 0; i < datoBMP.header.alto; i++)
+    {
+        // Reservar memoria para cada fila
+        copia[i] = malloc(datoBMP.header.ancho * sizeof(tPixel));
+        if (copia[i] == NULL)
+        {
+            puts("Error al asignar memoria");
+            // Liberar la memoria previamente asignada si falla
+            for (j = 0; j < i; j++)
+            {
+                free(copia[j]);
+            }
+            free(copia);
+            return;
+        }
+
+        // Copiar los datos de la fila original a la fila de copia
+        for (a = 0; a < datoBMP.header.ancho; a++)
+        {
+            copia[i][a] = datoBMP.matriz[i][a];
+            copia[i][a].azul = 255 - copia[i][a].azul;
+            copia[i][a].rojo = 255 - copia[i][a].rojo;
+            copia[i][a].verde = 255 - copia[i][a].verde;
+        }
+    }
+
+    copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
+
+    for (j = 0; j < datoBMP.header.alto; j++)
+    {
+        free(copia[j]);
+    }
+    free(copia);
 }
