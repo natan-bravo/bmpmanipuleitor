@@ -2,20 +2,17 @@
     Integrantes del grupo. En caso de ser un grupo de dos integrantes, no completar el último campo.
     Si alguno de los integrantes del grupo dejara la materia, completar de todos modos sus datos, aclarando que no entrega.
     -----------------
-    Apellido:
-    Nombre:
-    DNI:
-    Entrega:
+    Apellido: De Brito, Ariel
+    DNI: 44396739
+    Entrega: No
     -----------------
-    Apellido:
-    Nombre:
-    DNI:
-    Entrega:
+    Apellido: Medina, Ramiro
+    DNI: 45400641
+    Entrega: Si
     -----------------
-    Apellido:
-    Nombre:
-    DNI:
-    Entrega:
+    Apellido: Bravo, Pablo
+    DNI: 40258506
+    Entrega: Si
     -----------------
 */
 #include "funciones_bravo.h"
