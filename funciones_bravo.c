@@ -546,6 +546,13 @@ void concatenarHorizontal (tDatosBMP datoBMP,char nombre[],tDatosBMP datoConcaBM
     datoConcaBMP.header.ancho = nuevoAncho;
     datoConcaBMP.header.alto = nuevoAlto;
 
+    if (datoConcaBMP.headerExt.existe)
+        datoConcaBMP.header.tamFichero = sizeof (datoConcaBMP.header) + sizeof (datoConcaBMP.headerExt.headerExt) + (datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3);
+    else
+        datoConcaBMP.header.tamFichero = sizeof (datoConcaBMP.header) + (datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3);
+
+    datoConcaBMP.header.tamImagen = datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3;
+
     copiarImagen (copia,datoConcaBMP.header,datoConcaBMP.headerExt,nuevonombre);
 
     for (j = 0; j < datoConcaBMP.header.alto; j++)
@@ -620,6 +627,13 @@ void concatenarVertical (tDatosBMP datoBMP,char nombre[],tDatosBMP datoConcaBMP)
 
     datoConcaBMP.header.ancho = nuevoAncho;
     datoConcaBMP.header.alto = nuevoAlto;
+
+    if (datoConcaBMP.headerExt.existe)
+        datoConcaBMP.header.tamFichero = sizeof (datoConcaBMP.header) + sizeof (datoConcaBMP.headerExt.headerExt) + (datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3);
+    else
+        datoConcaBMP.header.tamFichero = sizeof (datoConcaBMP.header) + (datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3);
+
+    datoConcaBMP.header.tamImagen = datoConcaBMP.header.alto * datoConcaBMP.header.ancho * 3;
 
     copiarImagen (copia,datoConcaBMP.header,datoConcaBMP.headerExt,nuevonombre);
 
