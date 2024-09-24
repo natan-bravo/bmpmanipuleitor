@@ -110,6 +110,13 @@ void achicar (tDatosBMP datoBMP,char nombre[],int porcentaje)
     datoBMP.header.alto = nuevoAlto;
     datoBMP.header.ancho = nuevoAncho;
 
+    if (datoBMP.headerExt.existe)
+        datoBMP.header.tamFichero = sizeof (datoBMP.header) + sizeof (datoBMP.headerExt.headerExt) + (datoBMP.header.alto * datoBMP.header.ancho * 3);
+    else
+        datoBMP.header.tamFichero = sizeof (datoBMP.header) + (datoBMP.header.alto * datoBMP.header.ancho * 3);
+
+    datoBMP.header.tamImagen = datoBMP.header.alto * datoBMP.header.ancho * 3;
+
     copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
 
     for (j = 0; j < datoBMP.header.alto; j++)
@@ -160,6 +167,13 @@ void recortar (tDatosBMP datoBMP,char nombre[],int porcentaje)
 
     datoBMP.header.alto = nuevoAlto;
     datoBMP.header.ancho = nuevoAncho;
+
+    if (datoBMP.headerExt.existe)
+        datoBMP.header.tamFichero = sizeof (datoBMP.header) + sizeof (datoBMP.headerExt.headerExt) + (datoBMP.header.alto * datoBMP.header.ancho * 3);
+    else
+        datoBMP.header.tamFichero = sizeof (datoBMP.header) + (datoBMP.header.alto * datoBMP.header.ancho * 3);
+
+    datoBMP.header.tamImagen = datoBMP.header.alto * datoBMP.header.ancho * 3;
 
     copiarImagen (copia,datoBMP.header,datoBMP.headerExt,nuevonombre);
 
