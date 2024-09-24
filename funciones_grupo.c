@@ -2,10 +2,6 @@
     Integrantes del grupo. En caso de ser un grupo de dos integrantes, no completar el último campo.
     Si alguno de los integrantes del grupo dejara la materia, completar de todos modos sus datos, aclarando que no entrega.
     -----------------
-    Apellido: De Brito, Ariel
-    DNI: 44396739
-    Entrega: No
-    -----------------
     Apellido: Medina, Ramiro
     DNI: 45400641
     Entrega: Si
@@ -14,9 +10,12 @@
     DNI: 40258506
     Entrega: Si
     -----------------
+    Apellido: De Brito, Ariel
+    DNI: 44396739
+    Entrega: No
+    -----------------
 */
-#include "funciones_bravo.h"
-#include "funciones_medina.h"
+ #include "funciones_grupo.h"
 
 int solucion(int argc, char* argv[])
 {
@@ -345,4 +344,3 @@ int solucion(int argc, char* argv[])
 
     return 0;
 }
-
