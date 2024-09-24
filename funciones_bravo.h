@@ -37,3 +37,6 @@ void concatenarVertical (tDatosBMP,char [],tDatosBMP);
 
 
 #endif // FUNCIONES_BRAVO_H_INCLUDED
+
+
+
